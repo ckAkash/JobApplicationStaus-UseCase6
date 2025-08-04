@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Not Selected After Interview Rule</label>
+    <protected>false</protected>
+    <values>
+        <field>Active__c</field>
+        <value xsi:type="xsd:boolean">true</value>
+    </values>
+    <values>
+        <field>Candidate_no_longer_interested__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+    <values>
+        <field>CurrentStatus__c</field>
+        <value xsi:type="xsd:string">Interviewed</value>
+    </values>
+    <values>
+        <field>DaysSinceInterview__c</field>
+        <value xsi:type="xsd:double">14.0</value>
+    </values>
+    <values>
+        <field>DaysSinceLastActivity__c</field>
+        <value xsi:nil="true"/>
+    </values>
+    <values>
+        <field>NewStatus__c</field>
+        <value xsi:type="xsd:string">Not Selected</value>
+    </values>
+    <values>
+        <field>RuleName__c</field>
+        <value xsi:type="xsd:string">Not Selected After Interview Rule</value>
+    </values>
+</CustomMetadata>
