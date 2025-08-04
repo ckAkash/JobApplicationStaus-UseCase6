@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Akash Yadav
  * @group             : 
- * @last modified on  : 08-03-2025
+ * @last modified on  : 08-04-2025
  * @last modified by  : Akash Yadav
 **/
 public with sharing class ApplicantStatusBatchScheduler implements Schedulable{
@@ -12,6 +12,7 @@ public with sharing class ApplicantStatusBatchScheduler implements Schedulable{
     * @param scheduleContext 
     **/
     public void execute(SchedulableContext scheduleContext) {
-        Database.executeBatch(new MonitorJobApllicationBatch(), 200);
+        new MonitorJobApllicationBatch();
     }
 }
+// String cronExpression = '5 0 * * *';

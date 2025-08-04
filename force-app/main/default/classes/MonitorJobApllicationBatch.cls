@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Akash Yadav
  * @group             : 
- * @last modified on  : 08-03-2025
+ * @last modified on  : 08-04-2025
  * @last modified by  : Akash Yadav
 **/
 global with sharing class MonitorJobApllicationBatch implements Database.Batchable<sObject>{
@@ -21,6 +21,7 @@ global with sharing class MonitorJobApllicationBatch implements Database.Batchab
                                                 Candidate_No_Longer_Interested__c
                                         FROM Job_Application__c
                                         WHERE Status__c IN ('Withdrawn','Inactive','Not Selected')
+                                        LIMIT 50
        ]);
     }
 
@@ -54,7 +55,6 @@ global with sharing class MonitorJobApllicationBatch implements Database.Batchab
         if(!applicationToUpdate.isEmpty()){
             update as user applicationToUpdate;
         }
-
     }
 
     /**
@@ -63,6 +63,7 @@ global with sharing class MonitorJobApllicationBatch implements Database.Batchab
     * @param batchContext 
     **/
     global void finish(Database.BatchableContext batchContext){
+         
         // execute any post-processing operations
         System.debug(LoggingLevel.INFO, 'Successfully processed all records');
     }

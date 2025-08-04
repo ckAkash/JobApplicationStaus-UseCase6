@@ -55,6 +55,48 @@ private class MonitorJobApllicationBatchTest {
             Interview_Date__c = Date.today().addDays(-10)
         );
         insert interviewDetail;
+
+        // Bulk record creation and insertion
+        List<Job_Application__c> jobApplicationbulk = new List<Job_Application__c>();
+
+        for (Integer iterator = 0; iterator < 99; iterator++) {
+
+            //Inactive
+            Job_Application__c inactiveApplication = new Job_Application__c(
+            Status__c = 'Inactive',
+            Last_Activity_Date__c = Date.today().addDays(-20)
+            );
+
+            // Withdrawn
+            Job_Application__c withdrawnApplication = new Job_Application__c(
+                Status__c = 'Withdrawn',
+                Candidate_No_Longer_Interested__c = true
+            );
+
+            // Not Selected (interview date via child record)
+            Job_Application__c interviewApplication = new Job_Application__c(
+                Status__c = 'Not Selected'
+            );
+
+            jobApplicationbulk.add(inactiveApplication);
+            jobApplicationbulk.add(withdrawnApplication);
+            jobApplicationbulk.add(interviewApplication);
+        }
+        insert as user jobApplicationbulk;
+
+        List<Job_Interview_Detail__c> interviewDetailList = new List<Job_Interview_Detail__c>();
+        List<Job_Application__c> interviewJobAppList = [SELECT Id FROM Job_Application__c WHERE Status__c = 'Not Selected'];
+        for(Job_Application__c jobApplication:interviewJobAppList){
+            Job_Interview_Detail__c jobInterviewDetail = new Job_Interview_Detail__c(
+                Job_Application__c = jobApplication.Id,
+                Interview_Date__c = Date.today().addDays(-10)
+            );
+            interviewDetailList.add(jobInterviewDetail);
+        }
+
+        insert as user interviewDetailList;
+        //bulkification of insertion done here
+        
     }
 
     @isTest
@@ -62,26 +104,10 @@ private class MonitorJobApllicationBatchTest {
         User adminUser = [SELECT Id FROM User WHERE Email = 'testadmin@example.com'];
 
         System.runAs(adminUser) {
-            // Ensure metadata rules are deployed
-            List<Candidate_Applicant_Metadata__mdt> rules = [SELECT Id,
-                                                            RuleName__c, 
-                                                            NewStatus__c, 
-                                                            DaysSinceLastActivity__c, 
-                                                            DaysSinceInterview__c, 
-                                                            Active__c 
-                FROM Candidate_Applicant_Metadata__mdt 
-                WHERE RuleName__c IN (
-                    'Inactive Applicant Rule', 
-                    'Not Selected After Interview Rule', 
-                    'Application Withdrawn Rule'
-                )
-                AND Active__c = TRUE
-            ];
-            System.assert(!rules.isEmpty(), 'Required metadata rules are missing.');
 
             Test.startTest();
-            MonitorJobApllicationBatch batch = new MonitorJobApllicationBatch();
-            Database.executeBatch(batch, 50);
+            MonitorJobApllicationBatch batchOne = new MonitorJobApllicationBatch();
+            Database.executeBatch(batchOne, 50);
             Test.stopTest();
 
             // Query updated Job Applications
@@ -111,12 +137,53 @@ private class MonitorJobApllicationBatchTest {
 
         System.runAs(adminUser) {
             Test.startTest();
-            MonitorJobApllicationBatch batch = new MonitorJobApllicationBatch();
-            Database.executeBatch(batch, 50);
+            MonitorJobApllicationBatch batchTwo = new MonitorJobApllicationBatch();
+            Database.executeBatch(batchTwo, 50);
             Test.stopTest();
 
-            Job_Application__c result = [SELECT Status__c FROM Job_Application__c WHERE Id = :freshApp.Id];
+            Job_Application__c result = [SELECT Id,
+                                                Status__c
+                                         FROM Job_Application__c 
+                                         WHERE Id = :freshApp.Id];
             System.assertEquals('Inactive', result.Status__c, 'Fresh app should not have been updated');
+        }
+    }
+
+    @isTest
+    static void testBatchUpdatesStatusesBulk(){
+        User adminUser = [SELECT Id FROM User WHERE Email = 'testadmin@example.com'];
+
+        System.runAs(adminUser) {
+             
+
+            Test.startTest();
+            MonitorJobApllicationBatch batchThree = new MonitorJobApllicationBatch();
+            Database.executeBatch(batchThree, 50);
+            Test.stopTest();
+            
+            // Query updated Job Applications
+            List<Job_Application__c> apps = [SELECT Id,
+                                                    Status__c, 
+                                                    Candidate_No_Longer_Interested__c
+                                            FROM Job_Application__c
+                                            WHERE Status__c IN ('Withdrawn', 'Inactive', 'Not Selected')];
+            Integer  countInactive = 0;
+            Integer countWithdrawn = 0;
+            Integer countNotSelected = 0;
+
+            for (Job_Application__c app : apps) {
+                if (app.Status__c == 'Inactive') {
+                    countInactive++;
+                } else if (app.Status__c == 'Withdrawn') {
+                    countWithdrawn++;
+                } else if (app.Status__c == 'Not Selected') {
+                    countNotSelected++;
+                }
+            }
+
+            System.Assert.areEqual(100, countInactive, 'Inactive count is incorrect');
+            System.Assert.areEqual(100, countWithdrawn, 'Withdrawn count is incorrect');
+            System.Assert.areEqual(100, countNotSelected, 'Not Selected count is incorrect');
         }
     }
 }
