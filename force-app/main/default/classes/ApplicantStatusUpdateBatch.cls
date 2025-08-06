@@ -5,7 +5,7 @@
  * @last modified on  : 08-06-2025
  * @last modified by  : Akash Yadav
 **/
-global with sharing class ApplicantStatusUpdateBatch implements Database.Batchable<sObject>{
+global with sharing class ApplicantStatusUpdateBatch implements Database.Batchable<sObject>, Schedulable{
     
     /**
     * @description Start method 
@@ -165,5 +165,15 @@ global with sharing class ApplicantStatusUpdateBatch implements Database.Batchab
             return null;
         }
         return rule.NewStatus__c;
+    }
+
+
+    /**
+    * @description 
+    * @author Akash Yadav | 08-06-2025 
+    * @param scheduleContext 
+    **/
+    global void execute(SchedulableContext scheduleContext){
+        Database.executeBatch(new ApplicantStatusUpdateBatch(),200);
     }
 }

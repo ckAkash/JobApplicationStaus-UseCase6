@@ -185,4 +185,29 @@ private class ApplicantStatusUpdateBatchTest {
             System.assertEquals('New', unchangedApps[1].Status__c, 'Not Selected app without interview should remain unchanged');
         }
     }
+
+    @isTest
+    static void testScheduling(){
+        User adminUser = [SELECT Id FROM User WHERE Email = 'testadmin@example.com'];
+        System.runAs(adminUser){
+            Test.startTest();
+            String cronExp = '0 5 0 * * ?';
+            
+            String jobId = System.schedule('Application Status Update', cronExp, new ApplicantStatusUpdateBatch());
+            
+            // Get the information from the CronTrigger API object)
+
+            CronTrigger ct=[SELECT Id,
+                                    CronExpression, 
+                                    TimesTriggered, 
+                                    NextFireTime
+                            FROM CronTrigger
+                            WHERE Id =: jobId];
+            System.Assert.areEqual(cronExp, ct.CronExpression);
+            // Verify the job has not run
+            System.Assert.areEqual(0, ct.TimesTriggered);
+
+            Test.stopTest();
+        }
+    }
 }
