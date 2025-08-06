@@ -5,7 +5,7 @@
     "**/.sfdx": true
   },
   "salesforce.einsteinForDevelopers.enableAutocompletionsByFileType": {
-    "apex": false,
+    "apex": true,
     "javascript": true,
     "css": true,
     "html": true
